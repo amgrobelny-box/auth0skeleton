@@ -3,5 +3,19 @@ extends layout
 block content
   img(src="#{user.picture}")
   h2 Welcome #{user.nickname}!
+  p #{user.id_token}
   br
+  p.nickname
+  p #{user.app_metadata.box_id}
   a(href='/logout') Logout
+  script(src="https://cdn.auth0.com/js/lock-9.0.js")
+  script.
+    var lock = new Auth0Lock('#{env.AUTH0_CLIENT_ID}', '#{env.AUTH0_DOMAIN}');
+
+    lock.getProfile("#{user.id_token}", function (err, profile) {
+      if (err) {
+        return alert('There was an error getting the profile: ' + err.message);
+      }
+      // Display user information
+      document.getElementsByClassName('nickname')[0].innerHTML = profile.app_metadata.address;
+    });

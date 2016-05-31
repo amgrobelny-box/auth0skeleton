@@ -7,11 +7,11 @@ let Config = function () {
   this.boxFilename = "box.config.json";
   this.boxReadFile = path.join(__dirname, '../', this.boxFilename);
   this.boxConfig;
-  
+
   this.auth0Filename = "auth0.config.json";
   this.auth0ReadFile = path.join(__dirname, '../', this.auth0Filename);
   this.auth0Config
-  
+
   this.alternateFilename;
 
   Config.prototype.getConfig = function (configType, alternateFilename) {
@@ -44,9 +44,13 @@ let Config = function () {
           throw new Error("Configuration file unreadable.");
         }
 
+        let certPath = path.resolve(boxConfig.jwtPrivateKey)
+        let cert = fs.readFileSync(certPath);
+
         this.boxConfig = boxConfig;
+        this.boxConfig.privateKeyFile = cert;
         return this.boxConfig;
-      
+
       case 'auth0':
         if (alternateFilename) {
           this.alternateFilename = alternateFilename;
@@ -74,7 +78,7 @@ let Config = function () {
         } catch (e) {
           throw new Error("Configuration file unreadable.");
         }
-        
+
         this.auth0Config = auth0Config;
         return this.auth0Config;
       default:

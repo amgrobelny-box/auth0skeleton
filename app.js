@@ -10,8 +10,13 @@ var passport = require('passport');
 var strategy = require('./passport-strategies/auth0-strategy');
 var auth0Config = require('./util/Config').getConfig('auth0');
 
+var Config = require('./util/Config');
+var BoxConfig = Config.getConfig('box');
+var BoxClient = require('box-sdk');
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var refresh = require('./routes/refresh');
 
 var app = express();
 
@@ -27,19 +32,35 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(session({ 
-  secret: auth0Config.sessionSecret, 
-  resave: true,  
-  saveUninitialized: true 
+app.use(session({
+  secret: auth0Config.sessionSecret,
+  resave: true,
+  saveUninitialized: true
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(function (req, res, next) {
+  var boxClient = new BoxClient({
+    clientID: BoxConfig.clientId,
+    clientSecret: BoxConfig.clientSecret,
+    appAuth: {
+      keyID: BoxConfig.jwtPublicKeyId,
+      privateKey: BoxConfig.privateKeyFile,
+      passphrase: BoxConfig.jwtPrivateKeyPassword
+    }
+  });
+  var adminAPIClient = boxClient.getAppAuthClient('enterprise', BoxConfig.enterpriseId);
+  req.adminAPIClient = adminAPIClient;
+  next();
+});
+
 app.use('/', routes);
 app.use('/user', users);
+app.use('/refresh', refresh);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
@@ -50,7 +71,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
+  app.use(function (err, req, res, next) {
     res.status(err.status || 500);
     res.render('error', {
       message: err.message,
@@ -61,7 +82,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {
     message: err.message,

@@ -1,5 +1,7 @@
 auth0.config.json
 box.config.json
+private_key.pem
+public_key.pem
 
 # Logs
 logs
