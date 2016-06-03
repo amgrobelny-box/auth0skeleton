@@ -5,6 +5,8 @@ var passport = require('passport');
 var Config = require('../util/Config');
 var Auth0Config = Config.getConfig('auth0');
 
+var BoxTools = require('../util/BoxTools');
+
 var loginEnv = {
   AUTH0_CLIENT_ID: Auth0Config.clientId,
   AUTH0_DOMAIN: Auth0Config.domain,
@@ -35,9 +37,8 @@ router.get('/logout', function (req, res) {
 router.get('/callback',
   passport.authenticate('auth0', { failureRedirect: '/' }),
   function (req, res) {
-    console.log(req.user._json.app_metadata);
-    if (!('app_metadata' in req.user._json) || req.user._json.app_metadata === undefined || !('box_id' in req.user._json.app_metadata)) {
-      console.log("Passed check for box_id");
+    if (!('app_metadata' in req.user._json) || req.user._json.app_metadata === undefined || !('boxId' in req.user._json.app_metadata)) {
+      console.log("Creating new App User and assigning boxId...");
       var requestParams = {
         body: {
           name: req.user.displayName,
@@ -49,7 +50,7 @@ router.get('/callback',
         console.log(data);
         var params = { id: req.user.id };
         var metadata = {
-          box_id: data.id
+          boxId: data.id
         };
 
         management.updateAppMetadata(params, metadata, function (err, user) {
@@ -58,12 +59,25 @@ router.get('/callback',
             console.error(err);
           }
           req.user.app_metadata = user.app_metadata;
-          res.redirect('/user');
+          BoxTools.generateUserToken(req.boxClient, req.user.app_metadata.boxId, req.userTokenExpirationPeriod, function (err, accessTokenInfo) {
+            if (err) {
+              console.log(err);
+            }
+            req.user.boxAccessTokenObject = accessTokenInfo;
+            res.redirect('/user');
+          });
         });
       }));
     } else {
-      console.log("Has existing box_id");
-      res.redirect('/user');
+      console.log("Has existing boxId");
+      req = BoxTools.normalizeAppMetadata(req);
+      BoxTools.generateUserToken(req.boxClient, req.user.app_metadata.boxId, req.userTokenExpirationPeriod, function (err, accessTokenInfo) {
+        if (err) {
+          console.log(err);
+        }
+        req.user.boxAccessTokenObject = accessTokenInfo;
+        res.redirect('/user');
+      });
     }
   });
 

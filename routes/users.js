@@ -1,6 +1,7 @@
 var express = require('express');
 var passport = require('passport');
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn()
+var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
+var jwt = require('express-jwt');
 var router = express.Router();
 
 var Config = require('../util/Config');
@@ -15,12 +16,16 @@ var loginEnv = {
 router.get('/', ensureLoggedIn, function(req, res, next) {
   console.log("This is the user model...");
   console.log(req.user);
-  if('user' in req && '_json' in req.user && 'app_metadata' in req.user._json && 'box_id' in req.user._json.app_metadata) {
-    console.log("Normalizing user object...");
-    req.user.app_metadata = {};
-    req.user.app_metadata.box_id = req.user._json.app_metadata.box_id;
-  }
-  res.render('user', { user: req.user, env: loginEnv  });
+  res.render('user', { user: req.user, env: loginEnv, boxAccessTokenRefreshUrl: req.boxAccessTokenRefreshUrl  });
+});
+
+router.use(jwt({
+  secret: new Buffer(Auth0Config.clientSecret, 'base64'),
+  audience: Auth0Config.clientId
+}));
+
+router.post('/', function (req, res, next) {
+  res.send(req.user);
 });
 
 module.exports = router;

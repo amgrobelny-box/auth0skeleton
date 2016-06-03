@@ -16,7 +16,7 @@ var BoxClient = require('box-sdk');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var refresh = require('./routes/refresh');
+var userToken = require('./routes/userToken');
 
 var app = express();
 
@@ -50,14 +50,17 @@ app.use(function (req, res, next) {
       passphrase: BoxConfig.jwtPrivateKeyPassword
     }
   });
+  req.boxClient = boxClient;
   var adminAPIClient = boxClient.getAppAuthClient('enterprise', BoxConfig.enterpriseId);
   req.adminAPIClient = adminAPIClient;
+  req.userTokenExpirationPeriod = BoxConfig.userTokenExpirationPeriod;
+  req.boxAccessTokenRefreshUrl = BoxConfig.boxAccessTokenRefreshUrl
   next();
 });
 
 app.use('/', routes);
 app.use('/user', users);
-app.use('/refresh', refresh);
+app.use('/usertoken', userToken);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
