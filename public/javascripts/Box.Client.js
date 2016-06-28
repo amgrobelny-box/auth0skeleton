@@ -79,7 +79,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.folders = new Folders(this);
 	    this.files = new Files(this);
 	    this.refreshTokenCallback = refreshTokenCallback;
-	    // this.refreshTokenCallback = (additionalConfig && additionalConfig.refreshTokenCallback) ? additionalConfig.refreshTokenCallback : this.refreshBoxUserTokenCallback;
 	    this.retryAttempts = additionalConfig && additionalConfig.retryAttempts ? additionalConfig.retryAttempts : 3;
 	    this.currentNumberOfAttempts = 0;
 	  }
@@ -198,22 +197,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var isResponseBodyEmpty = !body || Object.getOwnPropertyNames(body).length === 0;
 	      return isResponseStatusCodeUnauthorized && isResponseBodyEmpty;
 	    }
-
-	    // refreshBoxUserTokenCallback (err, success) {
-	    //   console.log("REFRESHING ACCESS TOKEN WITH CALLBACK!!!!");
-	    //   let xhr = new XMLHttpRequest();
-	    //   $.ajax({
-	    //     method: 'POST',
-	    //     url: BoxApp.refreshCallbackUrl,
-	    //     headers: {
-	    //       "Authorization": "Bearer #{user.id_token}"
-	    //     },
-	    //     data: { boxId: BoxApp.boxId }
-	    //   })
-	    //     .fail(err("Something went wrong..."))
-	    //     .done(success);
-	    // },
-
 	  }]);
 
 	  return BoxClient;

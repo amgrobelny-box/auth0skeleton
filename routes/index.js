@@ -6,6 +6,10 @@ var Config = require('../util/Config');
 var Auth0Config = Config.getConfig('auth0');
 
 var BoxTools = require('../util/BoxTools');
+const fs = require('fs');
+const path = require('path');
+const fileName = 'test.txt';
+const filePath = path.join(__dirname, '../', fileName);
 
 var loginEnv = {
   AUTH0_CLIENT_ID: Auth0Config.clientId,
@@ -64,7 +68,13 @@ router.get('/callback',
               console.log(err);
             }
             req.user.boxAccessTokenObject = accessTokenInfo;
-            res.redirect('/user');
+            var userClient = req.boxClient.getBasicClient(accessTokenInfo.accessToken);
+            userClient.folders.create('0', "Test Folder", function (err, folder) {
+              var file = fs.readFileSync(filePath);
+              userClient.files.uploadFile('0', fileName, file, function (err, file) {
+                res.redirect('/user');
+              })
+            });
           });
         });
       }));
@@ -76,6 +86,7 @@ router.get('/callback',
           console.log(err);
         }
         req.user.boxAccessTokenObject = accessTokenInfo;
+        console.log(accessTokenInfo);
         res.redirect('/user');
       });
     }
