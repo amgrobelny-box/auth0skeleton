@@ -7,14 +7,14 @@ BoxTools.prototype.generateUserToken = function (boxClient, boxId, userTokenExpi
   var userClient = boxClient.getAppAuthClient('user', boxId);
   userClient._session.tokenManager.getTokensJWTGrant('user', boxId, function (err, accessTokenInfo) {
     console.log("Setting access token...");
+    console.log(accessTokenInfo);
     if (err) {
-      console.log(err);
-      callback(err, null);
+      return callback(err, null);
     }
     accessTokenInfo.expiresAt = accessTokenInfo.acquiredAtMS + userTokenExpirationPeriod;
     console.log(accessTokenInfo.expiresAt);
     console.log(new Date(accessTokenInfo.expiresAt) > Date.now());
-    callback(null, accessTokenInfo);
+    return callback(null, accessTokenInfo);
   });
 };
 

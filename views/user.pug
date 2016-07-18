@@ -12,6 +12,9 @@ block content
     else
       p= val.name
   p#accessToken #{user.boxAccessTokenObject.accessToken}
+  label New Folder Name
+    input(id="newFolder" type="text")
+  input(id="createNewFolder" type="submit")
   h4 Upload File using CORS
     div.row
       div.col-md-4
@@ -21,87 +24,119 @@ block content
             div.form-group
                 button.btn.btn-default(id='upload-button' type='submit') Upload
   a(href='/logout') Logout
-  block append scripts
-    script(src="https://cdn.auth0.com/js/lock-9.0.js")
-    script.
-        var form = document.getElementById('file-form');
-        var fileSelect = document.getElementById('file-select');
-        var uploadButton = document.getElementById('upload-button');
+block append scripts
+  script(src="https://cdn.auth0.com/js/lock-9.0.js")
+  script(src="./javascripts/BoxSdk.min.js")
+  script(src="./node_modules/angular/angular.js")
+  script(src="./node_modules/angular-animate/angular-animate.js")
+  script(src="./node_modules/angular-aria/angular-aria.js")
+  script(src="./node_modules/angular-material/angular-material.js")
 
-        form.onsubmit = function(event){
-          event.preventDefault();
-          uploadButton.innerHTML = 'Uploading...';
+  script(src="./javascripts/app/users/bootstrap.min.js")
+  script(src="./javascripts/app/users/Users.js")
+  script(src="./javascripts/app/users/UserController.js")
+  script(src="./javascripts/app/users/UserService.js")
+block inline-scripts
+  script.
+      angular
+      .module('boxApp', ['ngMaterial', 'users'])
+      .config(function($mdThemingProvider, $mdIconProvider){
 
-          // The Box Auth Header. Add your access token.
-          var headers = { Authorization: 'Bearer #{user.boxAccessTokenObject.accessToken}'};
-          var uploadUrl = 'https://upload.box.com/api/2.0/files/content';
+          $mdIconProvider
+              .defaultIconSet("/assets/svg/avatars.svg", 128)
+              .icon("menu"       , "./assets/svg/menu.svg"        , 24)
+              .icon("share"      , "./assets/svg/share.svg"       , 24)
+              .icon("google_plus", "./assets/svg/google_plus.svg" , 512)
+              .icon("hangouts"   , "./assets/svg/hangouts.svg"    , 512)
+              .icon("twitter"    , "./assets/svg/twitter.svg"     , 512)
+              .icon("phone"      , "./assets/svg/phone.svg"       , 512);
 
-          var files = fileSelect.files;
-          var formData = new FormData();
+              $mdThemingProvider.theme('default')
+                  .primaryPalette('brown')
+                  .accentPalette('red');
 
-          formData.append('files', files[0], files[0].name);
-
-          // Add the destination folder for the upload to the form
-          formData.append('parent_id', '0');
-
-          $.ajax({
-              url: uploadUrl,
-              headers: headers,
-              type: 'POST',
-              // This prevents JQuery from trying to append the form as a querystring
-              processData: false,
-              contentType: false,
-              data: formData
-          }).complete(function ( data ) {
-              uploadButton.innerHTML = 'Upload';
-              // Log the JSON response to prove this worked
-              console.log(data.responseText);
-              location.reload(true);
+      });
+      
+      var boxId = "!{user.app_metadata.boxId}";
+      var idToken = "!{user.id_token}";
+      var accessToken = "!{user.boxAccessTokenObject.accessToken}";
+      
+      function requestNewToken(boxId, idToken) {
+        var headers = { Authorization: 'Bearer ' + idToken};
+        var tokenUrl = "https://amsxbg.ngrok.io/usertoken";
+        return $.ajax({
+          url: tokenUrl,
+          headers: headers,
+          type: 'POST',
+          data: {boxId: boxId}
+        });
+      }
+      function errorHandler(options, client) {
+        console.log("Caught the error...");
+        console.log(options);
+        requestNewToken(boxId, idToken)
+        .success(function(data) {
+          console.log(data);
+          client.removeAccessTokenAndRerunRequest(options, data.accessToken, true)
+          .then(function(item) {
+            console.log(item);
           });
-        }
-    //- script(src="https://code.jquery.com/jquery-2.2.4.min.js")
-    //- script(src="./javascripts/Box.Client.js")
-    //- script.
-    //-   var BoxApp = {
-    //-     boxId: '#{user.app_metadata.boxId}',
-    //-     auth0UserJwt: '#{user.id_token}',
-    //-     boxAccessTokenObject: {'accessToken': '#{user.boxAccessTokenObject.accessToken}', 'expiresAt': '#{user.boxAccessTokenObject.expiresAt}'},
-    //-     refreshCallbackUrl: '#{boxAccessTokenRefreshUrl}',
-    //-     refreshBoxUserTokenCallback: function(err, success) {
-    //-       console.log("REFRESHING ACCESS TOKEN WITH CALLBACK!!!!");
-    //-       $.ajax({
-    //-         method: 'POST',
-    //-         url: BoxApp.refreshCallbackUrl,
-    //-         headers: {
-    //-           "Authorization": "Bearer #{user.id_token}"
-    //-         },
-    //-         data: {boxId: BoxApp.boxId}
-    //-       })
-    //-       .error(function(message) {
-    //-         err(message);
-    //-       })
-    //-       .done(success);
-    //-     },
-    //-     setBoxId: function(callback) {
-    //-       var me = this;
-    //-       var lock = new Auth0Lock('#{env.AUTH0_CLIENT_ID}', '#{env.AUTH0_DOMAIN}');
-    //-       lock.getProfile("#{user.id_token}", function (err, profile) {
-    //-         if (err) {
-    //-           return alert('There was an error getting the profile: ' + err.message);
-    //-         }
-    //-         me.boxId = profile.app_metadata.boxId;
-    //-         callback();
-    //-       });
-    //-     }
-    //-   };
-    //- script.
-    //-   BoxApp.boxAccessTokenObject.accessToken = 1234;
-    //-   var boxClient = new Box.client(BoxApp.boxAccessTokenObject, BoxApp.refreshBoxUserTokenCallback);
-    //-   console.log(boxClient);
-    //-   boxClient.folders.get('0', null, function(err, body) {
-    //-     if(err) {
-    //-       console.log("Error detected");
-    //-       console.log(err);
-    //-     }
-    //-     console.log(body);
-    //-   });
+        })
+        .error(function(jqXhr, textStatus, errorThrown) {
+          console.log(errorThrown);
+        });
+      }
+
+
+      var box = new BoxSdk();
+      var client = new box.BasicBoxClient({accessToken: accessToken});
+
+      requestNewToken(boxId, idToken)
+      .success(function(data) {
+        client.folders.get({id: "0"})
+        .then(function(folder) {
+            console.log(folder);
+        })
+        .catch(function(err) {
+          console.log(err);
+          errorHandler(err.options, client)
+        });
+      })
+
+      $('#createNewFolder').click(function(event) {
+        var newFolderName = $('#newFolder').val();
+        client.folders.create({parent: {id: "0"}, name: newFolderName})
+        .then(function(folder) {
+          console.log(folder);
+          location.reload(true);
+        })
+        .catch(function(err) {
+          console.log(err);
+        })
+      });
+
+      var form = document.getElementById('file-form');
+      var fileSelect = document.getElementById('file-select');
+      var uploadButton = document.getElementById('upload-button');
+
+      form.onsubmit = function(event){
+        event.preventDefault();
+        uploadButton.innerHTML = 'Uploading...';
+        var files = fileSelect.files;
+        var formData = new FormData();
+
+        formData.append('files', files[0], files[0].name);
+
+        // Add the destination folder for the upload to the form
+        formData.append('parent_id', '0');
+
+        client.files.upload({body: formData})
+        .then(function(resp) {
+          uploadButton.innerHTML = 'Upload';
+          console.log(resp);
+          location.reload(true);
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+      }
