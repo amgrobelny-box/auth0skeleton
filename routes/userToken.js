@@ -14,7 +14,7 @@ router.use(jwt({
 
 router.post('/', function (req, res, next) {
 
-  BoxTools.generateUserToken(req.boxClient, req.user.app_metadata.boxId, req.userTokenExpirationPeriod)
+  BoxTools.generateUserToken(req.boxClient, req.body.boxId, req.userTokenExpirationPeriod)
     .then(function (accessTokenInfo) {
       res.send(accessTokenInfo);
     })

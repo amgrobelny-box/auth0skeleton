@@ -63,7 +63,7 @@ block inline-scripts
       
       function requestNewToken(boxId, idToken) {
         var headers = { Authorization: 'Bearer ' + idToken};
-        var tokenUrl = "https://amsxbg.ngrok.io/usertoken";
+        var tokenUrl = "http://localhost:3000/usertoken";
         return $.ajax({
           url: tokenUrl,
           headers: headers,
