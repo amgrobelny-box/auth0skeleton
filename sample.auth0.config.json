@@ -1,0 +1,8 @@
+{
+    "domain": "",
+    "clientId": "",
+    "clientSecret": "",
+    "callbackUrl": "http://localhost:3000/callback",
+    "sessionSecret": "securepassword",
+    "apiToken": ""
+}

@@ -11,7 +11,7 @@ router.get('/:id', ensureLoggedIn, function (req, res, next) {
         res.redirect('/user');
         return;
       }
-      res.render('fileDetail', { user: req.user, boxAccessTokenRefreshUrl: req.boxAccessTokenRefreshUrl, file: file });
+      res.render('fileDetail', { user: req.user, file: file });
     });
   }
 });

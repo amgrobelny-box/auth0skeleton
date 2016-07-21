@@ -13,13 +13,14 @@ router.use(jwt({
 }));
 
 router.post('/', function (req, res, next) {
-  
-  BoxTools.generateUserToken(req.boxClient, req.body.boxId, req.userTokenExpirationPeriod, function (err, accessTokenInfo) {
-    if (err) {
-      console.log(err);
-    }
-    res.send(accessTokenInfo);
-  });
+
+  BoxTools.generateUserToken(req.boxClient, req.user.app_metadata.boxId, req.userTokenExpirationPeriod)
+    .then(function (accessTokenInfo) {
+      res.send(accessTokenInfo);
+    })
+    .catch(function (err) {
+      res.send(err);
+    });
 });
 
 module.exports = router;

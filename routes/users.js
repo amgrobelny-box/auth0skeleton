@@ -18,7 +18,7 @@ router.get('/', ensureLoggedIn, function(req, res, next) {
   console.log(req.user);
   var userClient = req.boxClient.getBasicClient(req.user.boxAccessTokenObject.accessToken);
   userClient.folders.get('0', null, function(err, folder) {
-    res.render('user', { user: req.user, env: loginEnv, boxAccessTokenRefreshUrl: req.boxAccessTokenRefreshUrl, baseFolder: folder  });
+    res.render('user', { user: req.user, env: loginEnv, baseFolder: folder  });
   });
 });
 

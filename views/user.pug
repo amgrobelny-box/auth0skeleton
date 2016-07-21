@@ -91,6 +91,16 @@ block inline-scripts
       var box = new BoxSdk();
       var client = new box.BasicBoxClient({accessToken: accessToken});
 
+      var optionsOnly = new box.BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+      var returnedOptions = optionsOnly.folders.get({id: "0"});
+      console.log(returnedOptions);
+
+      var noJSONProcessing = new box.BasicBoxClient({accessToken: accessToken, parseJSONResponse: false});
+      noJSONProcessing.folders.get({id: "0"})
+      .then(function(folder) {
+        console.log(folder);
+      });
+
       requestNewToken(boxId, idToken)
       .success(function(data) {
         client.folders.get({id: "0"})

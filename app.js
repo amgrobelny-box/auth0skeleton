@@ -12,7 +12,7 @@ var auth0Config = require('./util/Config').getConfig('auth0');
 
 var Config = require('./util/Config');
 var BoxConfig = Config.getConfig('box');
-var BoxClient = require('box-sdk');
+var BoxClient = require('box-node-sdk');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -41,6 +41,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Initialize a BoxClient for App Users
 app.use(function (req, res, next) {
   var boxClient = new BoxClient({
     clientID: BoxConfig.clientId,
@@ -52,11 +53,8 @@ app.use(function (req, res, next) {
     }
   });
   req.boxClient = boxClient;
-  var adminAPIClient = boxClient.getAppAuthClient('enterprise', BoxConfig.enterpriseId);
-  req.adminAPIClient = adminAPIClient;
+  req.adminAPIClient = boxClient.getAppAuthClient('enterprise', BoxConfig.enterpriseId);
   req.userTokenExpirationPeriod = BoxConfig.userTokenExpirationPeriod;
-  req.boxAccessTokenRefreshUrl = BoxConfig.boxAccessTokenRefreshUrl;
-  console.log(adminAPIClient);
   next();
 });
 

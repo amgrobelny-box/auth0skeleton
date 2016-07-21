@@ -1,0 +1,17 @@
+{
+    "clientId": "",
+    "clientSecret": "",
+    "enterpriseId": "",
+    "jwtPrivateKey": "private_key.pem",
+    "jwtPrivateKeyPassword": "password",
+    "jwtPublicKeyId": "",
+    "defaultSettings": {
+        "jwtExpiration": "",
+        "jwtAlgorithm": "",
+        "jwtType": "",
+        "jwtGrantType": ""
+    },
+    "userTokenExpirationPeriod": 3000000,
+    "testFileName": "test.txt",
+    "testFolderName": "Test Folder"
+}
